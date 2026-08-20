@@ -44,6 +44,16 @@ El conjunto de imágenes utilizado para el entrenamiento está disponible en la 
 <img src="imagenes_demostracion/imagen3.png" width="600" alt="Demostración 3">
 
 
+## Resultados y Rendimiento del Sistema
+
+El rendimiento global del sistema combina la localización espacial de los modelos YOLOE y la alta precisión en la clasificación contextual de estados mediante CLIP.
+
+###  Análisis Detallado
+Los reportes completos, incluyendo los archivos Excel con métricas detalladas por clase y las gráficas de entrenamiento, están disponibles en la carpeta del repositorio:
+
+* [Ver carpeta de métricas detalladas y gráficas](metricas/)
+
+
 
 ### Componentes Clave
 
