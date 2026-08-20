@@ -20,7 +20,7 @@ Puedes revisar y ejecutar los entornos de entrenamiento de los modelos directame
 
 Los archivos con los pesos óptimos obtenidos tras los entrenamientos se encuentran alojados en la siguiente carpeta compartida de Google Drive. 
 
-*  [Descargar Pesos de los Modelos (YOLO y CLIP)](https://drive.google.com/drive/folders/1v8PbTGbu0utwCL89MzKtbMJwgR01BEps?usp=sharing)
+*  [Descargar Pesos de los Modelos (YOLO, YOLOE y CLIP)](https://drive.google.com/drive/folders/1v8PbTGbu0utwCL89MzKtbMJwgR01BEps?usp=sharing)
 
 > **Nota:** Es necesario colocar los archivos `.pt` descargados dentro del directorio correspondiente del sistema para asegurar que el script principal los localice correctamente al iniciar el programa.
 
