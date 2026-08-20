@@ -11,6 +11,7 @@ Puedes revisar y ejecutar los entornos de entrenamiento de los modelos directame
 | :--- | :--- |
 | **Entrenamiento CLIP** | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/jose04112/proyecto-vision/blob/main/vision/entrenamientos/CLIP.ipynb) |
 | **Entrenamiento YOLO** | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/jose04112/proyecto-vision/blob/main/vision/entrenamientos/YOLO.ipynb) |
+| **Entrenamiento YOLOE** | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1kE8ytWvgmcf3YxrX8onY78NdryC6qFQO) |
 
 ---
 
