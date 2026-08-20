@@ -10,7 +10,7 @@ Puedes revisar y ejecutar los entornos de entrenamiento de los modelos directame
 | Modelo | Enlace de Acceso Directo |
 | :--- | :--- |
 | **Entrenamiento CLIP** | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/jose04112/proyecto-vision/blob/main/vision/entrenamientos/CLIP.ipynb) |
-| **Entrenamiento YOLO** | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/jose04112/proyecto-vision/blob/main/vision/entrenamientos/YOLO.ipynb) |
+| **Entrenamiento YOLOv11** | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/jose04112/proyecto-vision/blob/main/vision/entrenamientos/YOLO.ipynb) |
 | **Entrenamiento YOLOE** | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1kE8ytWvgmcf3YxrX8onY78NdryC6qFQO) |
 
 ---
@@ -24,6 +24,10 @@ Los archivos con los pesos óptimos obtenidos tras los entrenamientos se encuent
 > **Nota:** Es necesario colocar los archivos `.pt` descargados dentro del directorio correspondiente del sistema para asegurar que el script principal los localice correctamente al iniciar el programa.
 
 
+## Dataset de Imágenes
+El conjunto de imágenes utilizado para el entrenamiento está disponible en la siguiente carpeta compartida de Google Drive:
+
+* [Descargar Dataset de Imágenes](https://drive.google.com/drive/folders/10ov4fexS-W1VysfWcMt03ZtJe6OicwLt)
 
 ## Arquitectura y Flujo del Sistema Principal
 
