@@ -49,6 +49,6 @@ El conjunto de imágenes utilizado para el entrenamiento está disponible en la 
 
 * **`requirements.txt`**: Archivo de dependencias que instala el entorno necesario 
 * **`vision/`**: Contiene la lógica del sistema y los scripts de ejecución.
-    * **Versiones `vision/`**: Scripts mejorados para desarrollo y pruebas en la laptop personal.
-    * **Versiones `visionX.1/`**: Versiones desplegadas en la miniPC, configuradas para integración con nodos de ROS2 y protocolos RSI.
+    * **Carpetas vision, vision1, vision2, vision3**: Scripts mejorados para desarrollo y pruebas en la laptop personal.
+    * **Versiones .1`**: Versiones desplegadas en la miniPC, configuradas para integración con nodos de ROS2 y protocolos RSI.
 
