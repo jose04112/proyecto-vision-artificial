@@ -51,7 +51,7 @@ El rendimiento global del sistema combina la localización espacial de los model
 ###  Análisis Detallado
 Los reportes completos, incluyendo los archivos Excel con métricas detalladas por clase y las gráficas de entrenamiento, están disponibles en la carpeta del repositorio:
 
-* [Ver carpeta de métricas detalladas y gráficas](metricas/)
+* [Ver carpeta de métricas detalladas y gráficas](METRICAS/)
 
 
 
