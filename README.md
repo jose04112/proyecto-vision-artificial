@@ -1,7 +1,7 @@
 # proyecto-vision-artificial
 # Generación de conjuntos de entrenamiento para detección y reconocimiento de objetos de ensamble mediante un sistema de visión 
 
-Este repositorio contiene la documentación, scripts y cuadernos de entrenamiento para el sistema de detección y reconocimiento de objetos de ensamble.
+Este repositorio contiene la documentación, scripts, datasets y cuadernos de entrenamiento para el sistema de detección y reconocimiento de objetos de ensamble.
 
 ##  Cuadernos de Entrenamiento (Google Colab)
 
@@ -32,10 +32,9 @@ El conjunto de imágenes utilizado para el entrenamiento está disponible en la 
 
 ## Arquitectura y Flujo del Sistema Principal
 
-
-1. **Captura y Alineación (Intel RealSense):** El sistema inicializa la cámara para capturar los streams de video en tiempo real, alineando los mapas de profundidad con la imagen a color.
-2. **Detección y Segmentación (YOLOv11):** El modelo YOLO procesa los cuadros para detectar y localizar espacialmente los componentes de ensamble.
-3. **Clasificación Contextual (CLIP):** Las regiones de interés detectadas son evaluadas por el modelo CLIP para clasificar el estado actual del proceso (por ejemplo, determinar si se encuentra en estado de "ensamble" o "desensamble").
+1. **Captura y Alineación (Intel RealSense):** Adquisición sincronizada de flujos de color y profundidad en tiempo real, alineando los mapas métricos para el cálculo espacial[cite: 1].
+2. **Detección Dual (YOLOE):** Uso de un modelo personalizado para localizar piezas de ensamble y un modelo base por vocabulario abierto para la segmentación y filtrado de obstáculos[cite: 1].
+3. **Clasificación Contextual (CLIP):** Evaluación de recortes de las piezas detectadas mediante hilos concurrentes para determinar su estado detallado (ensamblado/desensamblado)[cite: 1].
 
 
 ## Funcionamiento del Sistema
