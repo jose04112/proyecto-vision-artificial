@@ -1,0 +1,226 @@
+comando para ejecutar desde terminal
+
+cd sistema_distribuido
+./run_vision2.sh
+
+------------------------------------------------------------------------------------------------------------------------------
+vision3.py (Detección de piezas + obstáculos con YOLOE + CLIP + Real Sense)
+Archivo: /home/cinvestav/sistema_distribuido/programas_vision/vision3.py
+
+
+1. MODELOS (rutas relativas -> ejecutar desde carpeta de modelos)
+IMPORTANTE: los .pt siguen viviendo en /home/cinvestav/sistema_distribuido/src/rsi_package/models/
+(la carpeta programas_vision NO contiene los modelos). Como el código usa rutas
+relativas, el programa debe ejecutarse DESDE la carpeta de modelos (ver sección 5).
+
+- CUSTOM_MODEL_PATH = "best yoloe custom.pt"   (conf 0.25) -> piezas, clases fijas
+- BASE_MODEL_PATH    = "yoloe-26s-seg.pt"      (conf 0.30) -> obstáculos, open-vocabulary
+- CLIP_MODEL_PATH    = "best_clip_V7.pt"       (ViT-B-32, CPU) -> clasificación ensamblado
+
+Prompt del modelo base (obstáculos):
+los prompts se pueden actualizar, agregar los siguientes son los que tienen mejor porcentaje de detccion en cuanto a los objetos elegidos
+  - "white block on a gray workbench"
+  - "metal T-shaped pin on a workbench"
+  - "silvery circular piece with four crosswise holes and a circular bar on a work table"
+  - "light blue box"
+  - "black rectangular block on a workbench"
+
+Clases CLIP (12): part_{squarerounded|square|circular}_{yellow|white}_{dissasembled|assembled}
+En clip también se pueden modificar los prompts 
+
+2. TOPICS ROS2 (publishers)
+- /object_centroid      (Float64MultiArray) -> [cx, cy, distancia_m]  (compatibilidad)
+- /object_count         (Int32)             -> número de piezas
+- /object_labels        (String)            -> labels YOLO separados por coma
+- /object_detections    (ObjectDetection)   -> 1 msg por pieza (label, cx, cy, depth)
+- /obstacle_detections  (ObjectDetection)   -> 1 msg por obstáculo (label="obstaculo")
+- /scene_description    (String)            -> "assembled:N dissasembled:M"
+
+Nota: /object_detections recibe DOS tipos de mensajes:
+  - label YOLO custom (publish_custom_detections)
+  - label CLIP (publish_clip_detections)
+
+
+3. CONFIGURACIÓN CLAVE
+DEVICE                     = "cpu"
+IMG_SIZE                   = 320 ## se puede cambiar a 640, pero bajarían los fps 
+TORCH_THREADS              = 3
+BASE_MODEL_EVERY_N_FRAMES  = 3   (obstáculos cada 3 frames)
+DEPTH_EVERY_N_FRAMES       = 3   (profundidad cada 3 frames)
+FRECUENCIA_CLIP            = 5   (CLIP cada 5 frames, en hilo aparte)
+
+4. CÁMARA
+RealSense D435, 640x480 @ 30 fps, ##se puede mdificar a 1080x720 @ 6 fps (cable original se puede con 15 fps)
+La distancia se calcula con la MEDIANA de una ventana de 9x9 alrededor del centroide (RADIO_CENTROIDE = 4) * depth_scale.
+
+
+5. CÓMO EJECUTAR
+(las rutas de modelos son relativas, por eso hay que estar en la carpeta de modelos)
+
+  cd /home/cinvestav/sistema_distribuido/src/rsi_package/models
+  source /opt/ros/jazzy/setup.bash
+  source /home/cinvestav/sistema_distribuido/install/setup.bash
+  export DISPLAY=:1
+  python3 /home/cinvestav/sistema_distribuido/programas_vision/vision3.py
+
+  AVISO: NO lo ejecutes con `cd .../programas_vision && python3 vision3.py`
+  (fallará porque no encontrará los .pt). El `cd` debe ser a la carpeta de
+  modelos, y se llama al script por su ruta absoluta nueva.
+
+- Salir: presionar tecla 'q' en la ventana de la cámara.
+- Primer arranque: 2-5 min cargando modelos (YOLOE + CLIP en CPU).
+- Necesita display gráfico (cv2.imshow) y cámara RealSense conectada.
+- Descarga pesos base ViT-B-32 de HuggingFace la primera vez (aviso HF_TOKEN).
+
+------------------------------------------------------------------------------------------------------------------------------
+vision.py, vision1.py, vision2.py
+(versiones ANTERIORES del sistema de visión; la versión actual es vision3.py)
+Carpeta: /home/cinvestav/sistema_distribuido/programas_vision/
+
+------------------------------------------------------------------------------------------------------------------------------
+
+#  1. vision.py  (versión más antigua y simple)
+
+Archivo: /home/cinvestav/sistema_distribuido/programas_vision/vision.py
+Nodo ROS2: 'vision'
+
+QUÉ HACE
+--------
+Detecta PIEZAS con YOLO (con máscaras de segmentación) y clasifica la ESCENA
+GLOBAL con CLIP. NO detecta obstáculos.
+
+MODELOS
+-------
+- YOLO:  "bestv1.1_yolo.pt"       (conf 0.5)  -> piezas, con máscaras
+- CLIP:  "best_clip_V2_14000.pt"  (ViT-B-32)  -> escena global
+- Device: "cuda" si hay GPU, si no "cpu" (auto)
+- Ruta de modelos: get_package_share_directory('rsi_package') -> RUTA ABSOLUTA
+  (no depende del directorio desde donde se ejecute)
+
+TOPICS ROS2
+-----------
+- /object_centroid     (Float64MultiArray) -> [cx, cy, distancia_m]
+- /object_count        (Int32)
+- /object_labels       (String)
+- /object_detections   (ObjectDetection)
+- /clip_scene          (String)  <- OJO: aquí se llama /clip_scene (no /scene_description)
+
+DETALLES
+--------
+- YOLO corre CADA frame (conf 0.5).
+- CLIP corre cada 10 frames, sobre el FRAME COMPLETO, de forma SÍNCRONA
+  (en el mismo hilo principal, no en un hilo aparte).
+  
+------------------------------------------------------------------------------------------------------------------------------
+# 2. vision1.py  (agrega detección de obstáculos POR GEOMETRÍA)
+Archivo: /home/cinvestav/sistema_distribuido/programas_vision/vision1.py
+Nodo ROS2: 'vision1'
+
+QUÉ HACE
+--------
+Detecta PIEZAS con YOLO (máscaras) + clasifica ESCENA GLOBAL con CLIP + detecta
+OBSTÁCULOS usando GEOMETRÍA DE PROFUNDIDAD (no un modelo de red, sino análisis
+3D del mapa de profundidad).
+
+MODELOS
+-------
+- YOLO:  "best_YOLO_V4.pt"   (conf 0.58)  -> piezas, con máscaras
+- CLIP:  "best_clip_v7.pt"   (ViT-B-32)   -> escena global
+- Device: "cuda" si hay GPU, si no "cpu" (auto)
+- Ruta de modelos: get_package_share_directory('rsi_package') -> RUTA ABSOLUTA
+
+TOPICS ROS2
+-----------
+- /object_centroid     (Float64MultiArray)
+- /object_count        (Int32)
+- /object_labels       (String)
+- /object_detections   (ObjectDetection)
+- /obstacle_detections (ObjectDetection)  <- NUEVO: label="obstacle"
+- /clip_scene          (String)
+
+DETECCIÓN DE OBSTÁCULOS (geométrica, lo que la distingue)
+---------------------------------------------------------
+1. Filtros de profundidad: spatial_filter + temporal_filter + hole_filling
+   (quitan ruido y rellenan huecos).
+2. Calibración dinámica del plano de la mesa con filtro de media móvil
+   (ALFA_SUAVIZADO = 0.10).
+3. Máscara de relieve: todo lo que esté más cerca que
+   (distancia_mesa - TOLERANCIA_RELIEVE 2cm) es candidato a obstáculo.
+4. Altura mínima para considerarlo obstáculo: ALTURA_MAX_ENSAMBLE_M = 0.042 m
+   (si sobresale más de 4.2 cm de la mesa, es obstáculo; si no, es pieza/ensamble).
+5. Limpieza morfológica: open 3x3, close 9x9, dilate 3x3.
+6. Contornos con tamaño mínimo 15x15 píxeles.
+7. Las máscaras de las piezas YOLO se BORRAN de la máscara de obstáculos
+   (cv2.fillPoly a 0), para no confundir pieza con obstáculo.
+
+DETALLES
+--------
+- YOLO corre cada frame (conf 0.58).
+- CLIP cada 12 frames, frame completo, en HILO APARTE.
+- Clases CLIP: 25 (con "scene_without_pcs").
+- Lógica de "escena vacía": si hay 15 frames seguidos sin piezas,
+  reporta "SCENE WITHOUT PCS".
+  
+------------------------------------------------------------------------------------------------------------------------------
+#  3. vision2.py  (cambia a YOLOE; obstáculos ahora por RED, no geometría)
+Archivo: /home/cinvestav/sistema_distribuido/programas_vision/vision2.py
+Nodo ROS2: 'vision'
+
+QUÉ HACE
+--------
+Detecta PIEZAS con YOLOE custom + OBSTÁCULOS con YOLOE base (open-vocabulary)
++ clasifica ESCENA GLOBAL con CLIP. Ya NO usa geometría para obstáculos.
+
+MODELOS
+-------
+- YOLOE custom: "best YOLOE.pt"      (conf 0.25) -> piezas
+- YOLOE base:   "yoloe-26s-seg.pt"   (conf 0.30) -> obstáculos (open-vocabulary)
+- CLIP:         "best_clip_V7.pt"    (ViT-B-32)  -> escena global
+- Device: "cpu" (FIJO, no auto)
+- Ruta de modelos: RELATIVA (cambió respecto a vision.py/vision1.py)
+  -> hay que ejecutarlo DESDE la carpeta de modelos.
+
+TOPICS ROS2
+-----------
+- /object_centroid     (Float64MultiArray)
+- /object_count        (Int32)
+- /object_labels       (String)
+- /object_detections   (ObjectDetection)
+- /obstacle_detections (ObjectDetection)  -> label="obstaculo"
+- /scene_description   (String)  <- OJO: aquí cambia a /scene_description
+
+DETECCIÓN DE OBSTÁCULOS (por modelo base open-vocabulary)
+---------------------------------------------------------
+- YOLOE base corre cada 3 frames con 5 prompts (bloque blanco, pin en T,
+  pieza circular, caja azul claro, bloque rectangular negro).
+- Filtros: descarta cajas grandes (área > 35% del frame), deduplica cajas
+  anidadas (contención > 0.75), y descarta lo que ya es pieza (IoU > 0.3).
+
+DETALLES
+--------
+- YOLOE custom corre cada frame.
+- CLIP cada 9 frames, frame completo, en hilo aparte.
+- Clases CLIP: 25 (igual que vision1).
+- NO dibuja máscaras (solo cajas).
+- Profundidad: mediana de ventana 9x9 (radio 4).
+- Ventana: "YOLOE + CLIP".
+
+------------------------------------------------------------------------------------------------------------------------------
+ TABLA COMPARATIVA DE LOS 4 PROGRAMAS
+ | Aspecto          | vision.py         | vision1.py          | vision2.py         | vision3.py                |
+|------------------|-------------------|---------------------|--------------------|---------------------------|
+| Modelo de piezas | YOLO bestv1.1     | YOLO best_YOLO_V4   | YOLOE best YOLOE   | YOLOE best yoloe custom   |
+| Obstáculos       | NO                | SÍ (geométrico)     | SÍ (YOLOE base)    | SÍ (YOLOE base)           |
+| Topic escena     | /clip_scene       | /clip_scene         | /scene_description | /scene_description        |
+| Ruta de modelos  | absoluta (ament)  | absoluta (ament)    | relativa           | relativa                  |
+| Device           | auto (cuda/cpu)   | auto (cuda/cpu)     | cpu fijo           | cpu fijo                  |
+| Conf piezas      | 0.5               | 0.58                | 0.25               | 0.25                      |
+| CLIP frecuencia  | 10 frames (sínc.) | 12 frames (hilo)    | 9 frames (hilo)    | 5 frames (hilo)           |
+| CLIP objetivo    | escena global     | escena global       | escena global      | POR PIEZA                 |
+| Clases CLIP      | 21                | 25                  | 25                 | 12                        |
+| Segmentación     | sí (YOLO)         | sí (YOLO)           | no                 | sí (piezas + obstáculos)  |
+| Nodo ROS2        | 'vision'          | 'vision1'           | 'vision'           | 'vision'                  |
+
+Nota: el cambio más grande de vision3.py es la fila "CLIP objetivo": dejó de
+clasificar la escena completa y pasó a clasificar CADA PIEZA por separado
+(por eso /scene_description ahora publica "assembled:N dissasembled:M").
