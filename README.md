@@ -32,9 +32,9 @@ El conjunto de imágenes utilizado para el entrenamiento está disponible en la 
 
 ## Arquitectura y Flujo del Sistema Principal
 
-1. **Captura y Alineación (Intel RealSense):** Adquisición sincronizada de flujos de color y profundidad en tiempo real, alineando los mapas métricos para el cálculo espacial[cite: 1].
-2. **Detección Dual (YOLOE):** Uso de un modelo personalizado para localizar piezas de ensamble y un modelo base por vocabulario abierto para la segmentación y filtrado de obstáculos[cite: 1].
-3. **Clasificación Contextual (CLIP):** Evaluación de recortes de las piezas detectadas mediante hilos concurrentes para determinar su estado detallado (ensamblado/desensamblado)[cite: 1].
+1. **Captura y Alineación (Intel RealSense):** Adquisición sincronizada de flujos de color y profundidad en tiempo real, alineando los mapas métricos para el cálculo espacial.
+2. **Detección Dual (YOLOE):** Uso de un modelo personalizado para localizar piezas de ensamble y un modelo base por vocabulario abierto para la segmentación y filtrado de obstáculos.
+3. **Clasificación Contextual (CLIP):** Evaluación de recortes de las piezas detectadas mediante hilos concurrentes para determinar su estado detallado (ensamblado/desensamblado).
 
 
 ## Funcionamiento del Sistema
@@ -48,5 +48,7 @@ El conjunto de imágenes utilizado para el entrenamiento está disponible en la 
 ### Componentes Clave
 
 * **`requirements.txt`**: Archivo de dependencias que instala el entorno necesario 
-* **`vision/`**: Contiene la lógica del sistema y los scripts de ejecución principal.
-* **`vision/entrenamientos/`**: Carpeta destinada a los cuadernos `.ipynb` de preparación de datos y entrenamiento de CLIP (empleando un conjunto de 700 imágenes) y YOLO (configurado con 1,500 objetos segmentados por clase).
+* **`vision/`**: Contiene la lógica del sistema y los scripts de ejecución.
+    * **Versiones `vision/`**: Scripts mejorados para desarrollo y pruebas en la laptop personal.
+    * **Versiones `visionX.1/`**: Versiones desplegadas en la miniPC, configuradas para integración con nodos de ROS2 y protocolos RSI.
+
